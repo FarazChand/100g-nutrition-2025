@@ -1,7 +1,12 @@
 import { PrismaClient } from "@prisma/client";
 import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
+import { randomBytes } from "crypto";
+import { addHours } from "date-fns";
 
+// import { randomUUID } from "crypto";
+
+import { sendEmailVerification } from "@/lib/utils/email"; // Create this utility
 import { isValidEmail, isStrongPassword } from "@/lib/utils/validation";
 
 const prisma = new PrismaClient();
@@ -44,6 +49,19 @@ export async function POST(req: Request) {
         password: hashedPassword,
       },
     });
+
+    // Creating email verification token and url
+    const token = randomBytes(32).toString("hex");
+
+    await prisma.verificationToken.create({
+      data: {
+        identifier: email,
+        token,
+        expires: addHours(new Date(), 1), // valid for 1 hour
+      },
+    });
+
+    await sendEmailVerification(email, token);
 
     return NextResponse.json({ success: true });
   } catch (err) {
