@@ -43,21 +43,15 @@ export async function POST(req: Request) {
 
     const hashedPassword = await hash(password, 10);
 
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-      },
-    });
-
     // Creating email verification token and url
     const token = randomBytes(32).toString("hex");
 
-    await prisma.verificationToken.create({
+    await prisma.pendingSignup.create({
       data: {
-        identifier: email,
+        email,
+        password: hashedPassword,
         token,
-        expires: addHours(new Date(), 1), // valid for 1 hour
+        expires: addHours(new Date(), 1),
       },
     });
 
