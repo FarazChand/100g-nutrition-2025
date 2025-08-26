@@ -30,7 +30,7 @@ export async function GET(req: Request) {
     },
   });
 
-  await prisma.pendingSignup.delete({ where: { token } });
+  await prisma.pendingSignup.deleteMany({ where: { email: pending.email } });
 
   return NextResponse.json({ success: true });
 }

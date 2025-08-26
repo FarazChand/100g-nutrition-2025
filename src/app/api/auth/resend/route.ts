@@ -3,7 +3,9 @@ import { compare } from "bcryptjs";
 import { randomBytes } from "crypto";
 import { addHours } from "date-fns";
 import { NextResponse } from "next/server";
+
 import { sendEmailVerification } from "@/lib/utils/email";
+import { isValidEmail, isStrongPassword } from "@/lib/utils/validation";
 
 const prisma = new PrismaClient();
 
@@ -12,6 +14,10 @@ export async function POST(req: Request) {
 
   if (!email || !password)
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+
+  if (!isValidEmail(email) || !isStrongPassword(password)) {
+    return NextResponse.json({ error: "Invalid credentials" }, { status: 400 });
+  }
 
   const pendingRecords = await prisma.pendingSignup.findMany({
     where: { email },
