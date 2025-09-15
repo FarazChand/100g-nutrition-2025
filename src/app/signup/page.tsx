@@ -55,6 +55,8 @@ export default function SignupPage() {
       router.push("/login");
     } else {
       const data = await res.json();
+      console.log("data should be here");
+      console.log(data.error);
       setError(data.error || "Something went wrong");
     }
   }
