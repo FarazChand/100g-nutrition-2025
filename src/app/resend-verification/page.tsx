@@ -4,29 +4,34 @@ import { useState } from "react";
 
 import { isValidEmail, isStrongPassword } from "@/lib/utils/validation";
 
+type Status = "idle" | "success" | "error" | "loading";
+
 export default function ResendPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+
+  const [status, setStatus] = useState<Status>("idle");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleResend = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage("");
-    setError("");
+    setStatus("idle");
+    setErrorMessage("");
 
     if (!isValidEmail(email)) {
-      setError("Please enter a valid email.");
+      setErrorMessage("Please enter a valid email.");
+      setStatus("error");
       return;
     }
 
     if (!isStrongPassword(password)) {
-      setError("Please enter a valid password.");
+      setErrorMessage("Please enter a valid password.");
+      setStatus("error");
+
       return;
     }
 
-    setLoading(true);
+    setStatus("loading");
 
     const res = await fetch("/api/auth/resend", {
       method: "POST",
@@ -37,12 +42,17 @@ export default function ResendPage() {
     });
 
     const data = await res.json();
-    setLoading(false);
 
     if (res.ok) {
-      setMessage("Verification email sent! Please check your inbox.");
+      setStatus("success");
     } else {
-      setError(data.error || "Something went wrong. Try again.");
+      if (data.error === "No matching pending record found") {
+        setErrorMessage("An account with this email does not exist.");
+      } else {
+        setErrorMessage(data.error || "Something went wrong. Try again.");
+      }
+
+      setStatus("error");
     }
   };
 
@@ -52,8 +62,14 @@ export default function ResendPage() {
         Resend Verification Email
       </h1>
       <form onSubmit={handleResend} className="space-y-4">
-        {error && <p className="text-sm text-red-500">{error}</p>}
-        {message && <p className="text-sm text-green-600">{message}</p>}
+        {status === "error" && (
+          <p className="text-sm text-red-500">{errorMessage}</p>
+        )}
+        {status === "success" && (
+          <p className="text-sm text-green-600">
+            Verification email sent! Please check your inbox.
+          </p>
+        )}
 
         <input
           type="email"
@@ -76,9 +92,9 @@ export default function ResendPage() {
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-2 rounded disabled:opacity-50"
-          disabled={loading}
+          disabled={status === "loading"}
         >
-          {loading ? "Sending..." : "Resend Email"}
+          {status === "loading" ? "Sending..." : "Resend Email"}
         </button>
       </form>
     </div>

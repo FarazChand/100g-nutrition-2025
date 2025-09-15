@@ -19,7 +19,10 @@ export default function LoginPage() {
     if (res?.ok) {
       router.push("/protected");
     } else {
-      alert("Invalid credentials");
+      // For security, it's best practice not to reveal whether the email is valid to prevent attackers enumerating user accounts. → Instead, always respond with a neutral message like "If an account exists, we'll send an email shortly."
+      alert(
+        "Invalid credentials. Either your password is incorrect OR you haven't verified the account."
+      );
     }
   }
 

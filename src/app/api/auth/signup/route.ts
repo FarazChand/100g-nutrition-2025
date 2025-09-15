@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
@@ -8,8 +8,6 @@ import { addHours } from "date-fns";
 
 import { sendEmailVerification } from "@/lib/utils/email"; // Create this utility
 import { isValidEmail, isStrongPassword } from "@/lib/utils/validation";
-
-const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   const { email, password } = await req.json();
